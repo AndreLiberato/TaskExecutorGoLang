@@ -6,41 +6,32 @@ import (
 	"math"
 )
 
-func TaskAlocation(N uint64) *[]model.Task {
+// TaskAlocation configura a capacidade inicial de Tasks.
+// Não aloca memória
+func TaskAlocation(N uint64) (*model.Tasks, uint64) {
 	numberTasks := uint64(math.Pow(10, float64(N)))
-	tasks := make([]model.Task, numberTasks)
-	return &tasks
+	tasks := make(model.Tasks, numberTasks)
+	return &tasks, numberTasks
 }
 
-func FillTasks(tasks *[]model.Task, E uint64) {
-	numberTasks := uint64(len(*tasks))
-	writingTasks := ((E * numberTasks) / 100)
-	readingTasks := numberTasks - writingTasks
-	tasksWrite := random.TaskPercentage{WritingTasks: &writingTasks, ReadingTasks: &readingTasks}
+// FillTasks cria aleatóriamente as tasks.
+func FillTasks(tasks *model.Tasks, numberTasks uint64, E uint64) {
+	writingTasks := ((E * numberTasks) / 100)  // Tasks de escrita
+	readingTasks := numberTasks - writingTasks // Tasks de leitura
 
+	// Objeto que encapsula a quantidade de tasks de cada tipo
+	taskType := random.TaskTypeQuantifier{
+		WritingTasks: &writingTasks,
+		ReadingTasks: &readingTasks,
+	}
+
+	// Criando as tasks
 	for i := uint64(0); i < numberTasks; i++ {
-		(*tasks)[i].Id = uint64(i + 1)
-		(*tasks)[i].Cost = random.GenerateCost()
-		(*tasks)[i].Type = tasksWrite.GenerateType()
-		(*tasks)[i].Value = random.GenerateValue()
-	}
-}
-
-func SlicePerThread(tasks *[]model.Task, T uint64) *[][]model.Task {
-	numberTasks := uint64(len(*tasks))
-	sliceSize := numberTasks / T
-	extraTasks := numberTasks % T
-	sliceTask := make([][]model.Task, T)
-	startIndex := uint64(0)
-
-	for i := uint64(0); i < T; i++ {
-		realSliceSize := sliceSize
-		if i < extraTasks {
-			realSliceSize++
+		(*tasks)[i] = model.Task{
+			Id:    uint64(i + 1),
+			Cost:  random.GenerateCost(),
+			Type:  taskType.GenerateType(),
+			Value: random.GenerateValue(),
 		}
-		endIndex := startIndex + realSliceSize
-		sliceTask[i] = (*tasks)[startIndex:endIndex]
-		startIndex = endIndex
 	}
-	return &sliceTask
 }
