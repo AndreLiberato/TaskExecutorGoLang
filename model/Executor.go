@@ -1,63 +1,41 @@
 package model
 
 import (
-	"ConcurrentProgramming/TaskExecutor/handler"
 	"fmt"
-	"os"
 	"sync"
 )
 
 // Executor encapsula as informações necessárias para seu fluxo de excução.
 type Executor struct {
-	Tasks       *Tasks
-	Results     Results
-	T           uint64
-	NumberTasks uint64
+	TasksChannel   TaskChannel
+	ResultsChannel ResultChannel
+	Tasks          *Tasks
+	Results        *Results
+	WaitGroup      *sync.WaitGroup
+	WaitReceiver   *sync.WaitGroup
 }
 
 // Execute é a função responsável pelo controle do fluxo de execução do Executor.
 func (executor Executor) Execute() {
-	tasksChannel := make(TaskChannel, executor.T)     // Canal de tasks
-	resultsChannel := make(ResultChannel, executor.T) // Canal de results
+	fmt.Println("Iniciando trabalho do executor.")
 
-	// Criando arquivo
-	file, err := os.Create("value.data")
-	handler.Check(err)
-	defer file.Close()
+	go executor.sender(executor.TasksChannel) // Inicia GoRoutine para enviar as tasks
 
-	// Escrevendo o valor inicial no arquivo
-	_, err = file.WriteString(fmt.Sprintf("%f\n", 0.0))
-	handler.Check(err)
+	executor.WaitReceiver.Add(1)
 
-	waitGroup := new(sync.WaitGroup) // Ponto de sincronização
+	go executor.receiver(executor.ResultsChannel) // Inicia GoRoutine para recever os results
 
-	fileMutex := new(sync.RWMutex) // Mutex de controle de escrita e leitura do arquivo
+	executor.WaitGroup.Wait() // Espere todas os workers acabarem
 
-	// Iteração para criação einicialização dos workers
-	for i := uint64(0); i < executor.T; i++ {
-		worker := Worker{
-			tasksChannel:   tasksChannel,
-			resultsChannel: resultsChannel,
-			waitGroup:      waitGroup,
-			fileMutex:      fileMutex,
-		}
-		waitGroup.Add(1)
-		go worker.Work(file)
-	}
+	close(executor.ResultsChannel) // Fecha o canal de results
 
-	go executor.sender(tasksChannel)     // Inicia GoRoutine para enviar as tasks
-	go executor.receiver(resultsChannel) // Inicia GoRoutine para recever os results
-
-	waitGroup.Wait() // Espere todas os workers acabarem
-
-	defer close(resultsChannel) // Fecha o canal de results
+	fmt.Println("Trabalho do executor finalizado.")
 }
 
 // sender é o método responsável por enviar as tarefas para o canal de tasks.
 func (executor Executor) sender(tasksChannel chan<- Task) {
 	defer close(tasksChannel)
-	for i := uint64(0); i < executor.NumberTasks; i++ {
-		task := (*executor.Tasks)[i] // Atribuí a task
+	for i, task := range *executor.Tasks {
 		tasksChannel <- task         // Envia para o canal
 		delete((*executor.Tasks), i) // Remove da estrutura que armazena as tasks
 	}
@@ -67,7 +45,8 @@ func (executor Executor) sender(tasksChannel chan<- Task) {
 func (executor Executor) receiver(resultsChannel <-chan Result) {
 	keyResult := uint64(0) // Chave inicial
 	for result := range resultsChannel {
-		executor.Results[keyResult] = result
+		(*executor.Results)[keyResult] = result
 		keyResult++
 	}
+	executor.WaitReceiver.Done()
 }

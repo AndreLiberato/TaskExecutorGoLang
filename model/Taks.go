@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -25,7 +24,7 @@ type Tasks map[uint64]Task
 type TaskChannel chan Task
 
 // Process é o método de processamento das tarefas.
-func (task Task) Process(file *os.File, writeMutex *sync.RWMutex) Result {
+func (task Task) Process(sharedFile handler.SharedFile) Result {
 	startTime := time.Now() // Marcador de início de excução
 
 	task.waitCost(task.Cost) // Espera o tempo em ms
@@ -34,15 +33,15 @@ func (task Task) Process(file *os.File, writeMutex *sync.RWMutex) Result {
 
 	switch task.Type {
 	case Read:
-		writeMutex.RLock()           // Efetua lock para leitura
-		value = task.readValue(file) // Ler valor do arquivo
-		writeMutex.RUnlock()         // Libera a trava arquivo
+		sharedFile.FileMutex.RLock()            // Efetua lock para leitura
+		value = task.readValue(sharedFile.File) // Ler valor do arquivo
+		sharedFile.FileMutex.RUnlock()          // Libera a trava arquivo
 	case Write:
-		writeMutex.Lock()            // Efetua o lock para escrita
-		value = task.readValue(file) // Ler valor do arquivo
-		value = task.sumValue(value) // Soma o valor do arquivo com o valor da task
-		task.writeValue(file, value) //	Escreve o valor no arquivo
-		writeMutex.Unlock()          // Libeara a trava de escrita do arquivo
+		sharedFile.FileMutex.Lock()             // Efetua o lock para escrita
+		value = task.readValue(sharedFile.File) // Ler valor do arquivo
+		value = task.sumValue(value)            // Soma o valor do arquivo com o valor da task
+		task.writeValue(sharedFile.File, value) //	Escreve o valor no arquivo
+		sharedFile.FileMutex.Unlock()           // Libeara a trava de escrita do arquivo
 	}
 
 	endTime := time.Now()                 // Marcador de fim de execução

@@ -3,19 +3,22 @@ package logic
 import (
 	"ConcurrentProgramming/TaskExecutor/model"
 	"ConcurrentProgramming/TaskExecutor/random"
+	"fmt"
 	"math"
 )
 
 // TaskAlocation configura a capacidade inicial de Tasks.
 // Não aloca memória
-func TaskAlocation(N uint64) (*model.Tasks, uint64) {
+func TasksInstance(N uint64) (*model.Tasks, uint64) {
 	numberTasks := uint64(math.Pow(10, float64(N)))
-	tasks := make(model.Tasks, numberTasks)
+	tasks := make(model.Tasks)
 	return &tasks, numberTasks
 }
 
 // FillTasks cria aleatóriamente as tasks.
 func FillTasks(tasks *model.Tasks, numberTasks uint64, E uint64) {
+	fmt.Println("Gerando tarefas.")
+
 	writingTasks := ((E * numberTasks) / 100)  // Tasks de escrita
 	readingTasks := numberTasks - writingTasks // Tasks de leitura
 
