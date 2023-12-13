@@ -26,4 +26,8 @@ value.data
 # Go workspace file
 go.work
 
+# Profiling files
+cpu.prof
+mem.prof
+
 # End of https://www.toptal.com/developers/gitignore/api/go
