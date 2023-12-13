@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-func Init(N uint64, E uint64, T uint64) *model.Results {
+func Init(N float64, E uint64, T uint64) *model.Results {
 	tasks, numberTasks := TasksInstance(N)
-	results := make(model.Results)
+	results := make(model.Results, numberTasks)
 
 	FillTasks(tasks, numberTasks, E)
 

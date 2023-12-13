@@ -8,10 +8,9 @@ import (
 )
 
 // TaskAlocation configura a capacidade inicial de Tasks.
-// Não aloca memória
-func TasksInstance(N uint64) (*model.Tasks, uint64) {
-	numberTasks := uint64(math.Pow(10, float64(N)))
-	tasks := make(model.Tasks)
+func TasksInstance(N float64) (*model.Tasks, uint64) {
+	numberTasks := uint64(math.Pow(10, N))
+	tasks := make(model.Tasks, numberTasks)
 	return &tasks, numberTasks
 }
 

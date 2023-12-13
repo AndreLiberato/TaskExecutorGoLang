@@ -6,13 +6,13 @@ import (
 )
 
 // GenerateCost gera um valor aleatório no intervalo (0.0, 0.01(.
-func GenerateCost() float64 {
-	return rand.Float64() * 0.01
+func GenerateCost() float32 {
+	return rand.Float32() * 0.01
 }
 
 // GenerateValue gera um valor aleatório no intervalo (0.0, 10(.
-func GenerateValue() float64 {
-	return rand.Float64() * 10
+func GenerateValue() float32 {
+	return rand.Float32() * 10
 }
 
 // TaskTypeQuantifier é uma estrutura que encapsula o valores de cada tipo de task.
@@ -23,7 +23,7 @@ type TaskTypeQuantifier struct {
 
 // GenerateType é o método responsável por gerar o tipo de tarefa de maneira aleatória.
 func (taskTypeQuantifier *TaskTypeQuantifier) GenerateType() model.TaskType {
-	value := rand.Int63n(2) // Valor no intervalo (0, 2(
+	value := rand.Int31n(2) // Valor no intervalo (0, 2(
 	switch value {
 	case 0:
 		if (*taskTypeQuantifier.WritingTasks) > 0 {

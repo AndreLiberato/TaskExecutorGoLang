@@ -35,9 +35,8 @@ func (executor Executor) Execute() {
 // sender é o método responsável por enviar as tarefas para o canal de tasks.
 func (executor Executor) sender(tasksChannel chan<- Task) {
 	defer close(tasksChannel)
-	for i, task := range *executor.Tasks {
-		tasksChannel <- task         // Envia para o canal
-		delete((*executor.Tasks), i) // Remove da estrutura que armazena as tasks
+	for _, task := range *executor.Tasks {
+		tasksChannel <- task // Envia para o canal
 	}
 }
 

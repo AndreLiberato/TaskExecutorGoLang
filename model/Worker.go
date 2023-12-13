@@ -10,7 +10,7 @@ type Worker struct {
 	TasksChannel   TaskChannel
 	ResultsChannel ResultChannel
 	WaitGroup      *sync.WaitGroup
-	SharedFile     handler.SharedFile
+	SharedFile     *handler.SharedFile
 }
 
 // Work é o método que determina o trabalho do Worker.
